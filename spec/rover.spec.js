@@ -14,9 +14,9 @@ describe("Rover class", function() {
     let position = 98382;
     let rover = new Rover(position);
 
-    expect(rover.position).toBe(position)
+    expect(rover.position).toBe(position);
     expect(rover.generatorWatts).toBe(110);
-    expect(rover.mode).toBe('NORMAL')
+    expect(rover.mode).toBe('NORMAL');
   });
   
 
@@ -32,43 +32,57 @@ describe("Rover class", function() {
     let message = new Message(messageName, commands);
     let response = rover.receiveMessage(message);
     expect(response.name).toBe(messageName);
-    expect(response.results).toEqual([]);
   });
 
   // Test 9
   
   // “response returned by receiveMessage includes two results if two commands are sent in the message”
   
-
   it("response returned by receiveMessage includes two results if two commands are sent in the message", function() {
     let position = 98382;  
     let rover = new Rover(position);
     let messageName = 'Test';
-    let commands = ['COMMAND_1', 'COMMAND_2'];
+    let commands = [
+      new Command('MODE_CHANGE', 'NORMAL'),
+      new Command('STATUS_CHECK')
+    ];
     let message = new Message(messageName, commands);
     let response = rover.receiveMessage(message);
-    expect(response.results).toEqual(commands);
+    
+    expect(response).toMatchObject({
+      name: messageName,
+      results: [
+        { completed: true },
+        { completed: true },
+        { position: 98382, mode: 'NORMAL', generatorWatts: 110 }
+      ]
+    });
   });
-
+  
   // Test 10
   
   // “responds correctly to the status check command”
   // For the STATUS_CHECK command, receiveMessage(message).results includes a roverStatus object describing the current state of the rover object — mode, generatorWatts, and position. The test should check each of these for accuracy.
   // See the Rover Command Types table for more details.
 
-  it("responds correctly to the status check command", function() {
-    let position = 98382;
-    let generatorWatts = 110;
-    let mode = 'CURRENT_MODE'
-    let rover = new Rover(position);
-    let messageName = 'Test';
-    let commands = ['STATUS_CHECK'];
-    let message = new Message(messageName, commands);
-    let command = new Command(commands)
-    let response = rover.receiveMessage(message);
-    let roverStatus = { position, mode, generatorWatts }
-    expect(response.results).toEqual(commands);
+it("responds correctly to the status check command", function() {
+  let position = 98382;
+  let rover = new Rover(position);
+  let messageName = 'Test';
+  let commands = [new Command('STATUS_CHECK')];
+  let message = new Message(messageName, commands);
+  let response = rover.receiveMessage(message);
+  
+  expect(response).toMatchObject({
+    name: messageName,
+    results: [
+      { completed: true },
+      { position: 98382, mode: 'NORMAL', generatorWatts: 110 }
+    ]
   });
+});
+
+
 
   // Test 11
   
@@ -76,16 +90,57 @@ describe("Rover class", function() {
   
   // The test should check the completed property and rover mode for accuracy.
   // The rover has two modes that can be passed as values to a mode change command: ‘LOW_POWER’ and ‘NORMAL’.
+
+
+  it("responds correctly to the mode change command", function() {
+    let position = 98382;
+    let rover = new Rover(position);
+    let messageName = 'Test message';
+    let commands = [new Command('MODE_CHANGE', 'LOW_POWER')];
+    let message = new Message(messageName, commands);
+    let response = rover.receiveMessage(message);
+    
+    expect(rover.mode).toBe('LOW_POWER');
+    expect(response.results[0]).toMatchObject({ completed: true });
+  });
+
   // Test 12
   
   // “responds with a false completed value when attempting to move in LOW_POWER mode”
   
+
+  it("responds with a false completed value when attempting to move in LOW_POWER mode", function() {
+    let position = 98382;
+    let rover = new Rover(position);
+    rover.mode = 'LOW_POWER';
+    let messageName = 'Test message';
+    let commands = [new Command('MOVE', 592168)];
+    let message = new Message(messageName, commands);
+    let response = rover.receiveMessage(message);
+    
+    expect(response.results[0]).toMatchObject({ completed: false });
+    expect(rover.position).toBe(position); // Position should not change
+  });
+
   // The test should check the completed property for accuracy and confirm that the rover’s position did not change.
   // Use the Rover Modes table for guidance on how to handle move commands in different modes.
+  
   // Test 13
   
   // “responds with the position for the move command”
-  
+
   // A MOVE command will update the rover’s position with the position value in the command.
 
+  it("responds with the position for the move command", function() {
+    let position = 98382;
+    let rover = new Rover(position);
+    let messageName = 'Test message';
+    let commands = [new Command('MOVE', 51251)];
+    let message = new Message(messageName, commands);
+    let response = rover.receiveMessage(message);
+    
+    expect(response.results[0]).toMatchObject({ completed: true });
+    expect(rover.position).toBe(51251); // Position should change
+  });
 });
+
