@@ -6,9 +6,9 @@ class Rover {
     if (!position) {
       throw Error("Position required.");
     }
-    this.position = position;
     this.mode = 'NORMAL';
     this.generatorWatts = 110;
+    this.position = position;
   }
 
   receiveMessage(message) {
@@ -21,16 +21,19 @@ class Rover {
     for (let command of message.commands) {
       if (command.commandType === 'STATUS_CHECK') {
         let roverStatus = {
-          position: this.position,
+
           mode: this.mode,
           generatorWatts: this.generatorWatts,
+          position: this.position,
         };
-         results.push({ completed: true });
-         results.push(roverStatus)
+         results.push({ completed: true, roverStatus });
       } else if (command.commandType === 'MODE_CHANGE') {
         this.mode = command.value;
         results.push({ completed: true });
-      } else if (command.commandType === 'MOVE') {
+      } 
+      
+      
+      else if (command.commandType === 'MOVE') {
         if (this.mode === 'NORMAL') {
           this.position = command.value;
           results.push({ completed: true });
@@ -41,7 +44,7 @@ class Rover {
     }
 
     return {
-      name: message.name,
+      message: message.name,
       results: results,
     };
   }
@@ -49,16 +52,13 @@ class Rover {
 
 let rover = new Rover(98382); 
 let commands = [
-  new Command('MODE_CHANGE', 'NORMAL'),
-  new Command('STATUS_CHECK'),
-  new Command('MOVE', 51251),
+  new Command('MOVE', 4321),
   new Command('STATUS_CHECK'),
   new Command('MODE_CHANGE', 'LOW_POWER'),
-  new Command('STATUS_CHECK'),
-  new Command('MOVE', 32901),
+  new Command('MOVE', 3579),
+  new Command('STATUS_CHECK')
 ];
-let message = new Message('Test message with two commands', commands);
+let message = new Message("TA power", commands);
 let response = rover.receiveMessage(message);
-
-console.log(response);
+console.log(response)
 module.exports = Rover;

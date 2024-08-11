@@ -31,7 +31,7 @@ describe("Rover class", function() {
     let commands = [];
     let message = new Message(messageName, commands);
     let response = rover.receiveMessage(message);
-    expect(response.name).toBe(messageName);
+    expect(response.message).toBe(messageName);
   });
 
   // Test 9
@@ -50,11 +50,11 @@ describe("Rover class", function() {
     let response = rover.receiveMessage(message);
     
     expect(response).toMatchObject({
-      name: messageName,
+      message: messageName,
       results: [
         { completed: true },
-        { completed: true },
-        { position: 98382, mode: 'NORMAL', generatorWatts: 110 }
+        { completed: true ,
+        roverStatus: { mode: 'NORMAL', generatorWatts: 110, position: 98382 }}
       ]
     });
   });
@@ -68,16 +68,16 @@ describe("Rover class", function() {
 it("responds correctly to the status check command", function() {
   let position = 98382;
   let rover = new Rover(position);
-  let messageName = 'Test';
+  let messageName = 'Test message with two commands';
   let commands = [new Command('STATUS_CHECK')];
   let message = new Message(messageName, commands);
   let response = rover.receiveMessage(message);
   
   expect(response).toMatchObject({
-    name: messageName,
+    message: messageName,
     results: [
-      { completed: true },
-      { position: 98382, mode: 'NORMAL', generatorWatts: 110 }
+      { completed: true ,
+      roverStatus: { mode: 'NORMAL', generatorWatts: 110, position: 98382} }
     ]
   });
 });
